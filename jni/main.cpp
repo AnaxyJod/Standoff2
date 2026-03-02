@@ -60,14 +60,9 @@ int main(){
 
         draw::processInput();
         if (dbg) std::cerr << "[dbg] after processInput" << std::endl;
-        if (!ImGui::GetCurrentContext()) {
-            if (dbg) std::cerr << "[dbg] skip: no ImGui context" << std::endl;
-            usleep(20000);
-            continue;
-        }
         draw::beginFrame();
         if (dbg) std::cerr << "[dbg] after beginFrame" << std::endl;
-        if (!ImGui::GetCurrentContext() || !draw::isFrameReady()) {
+        if (!draw::isFrameReady()) {
             if (dbg) std::cerr << "[dbg] skip: frame not ready" << std::endl;
             usleep(20000);
             continue;

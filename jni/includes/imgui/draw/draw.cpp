@@ -123,7 +123,9 @@ namespace draw {
             return false;
         }
 
-        touch::init(info.width, info.height, info.orientation);
+        // Disable raw input threads for stability on some Android 13 builds.
+        // Menu can still render; this avoids crashes in detached /dev/input readers.
+        // touch::init(info.width, info.height, info.orientation);
         g_Initialized = true;
         return true;
     }
@@ -183,7 +185,7 @@ namespace draw {
             android::ANativeWindowCreator::Destroy(native_window);
             native_window = nullptr;
         }
-        touch::shutdown();
+        // touch::shutdown();
         g_Initialized = false;
     }
 
