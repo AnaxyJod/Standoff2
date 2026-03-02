@@ -53,24 +53,33 @@ int main(){
     cout<<"playerManager : 0x"<<hex<<libUnity.start+offsets::playerManager_addr<<endl;
     
     while(true){
+        static int dbgFrame = 0;
+        const bool dbg = (dbgFrame < 10);
+        if (dbg) std::cerr << "[dbg] frame " << dbgFrame << " start" << std::endl;
+
         draw::processInput();
+        if (dbg) std::cerr << "[dbg] after processInput" << std::endl;
         if (!ImGui::GetCurrentContext()) {
             usleep(20000);
             continue;
         }
         draw::beginFrame();
+        if (dbg) std::cerr << "[dbg] after beginFrame" << std::endl;
         if (!ImGui::GetCurrentContext()) {
             usleep(20000);
             continue;
         }
 
         menu.render();
+        if (dbg) std::cerr << "[dbg] after menu.render" << std::endl;
         
         
         hitLogger.Update();
         hitMarker.Update();
+        if (dbg) std::cerr << "[dbg] after hit updates" << std::endl;
         
         uint64_t playerManager = helper.getInstance(libUnity.start + offsets::playerManager_addr, true, 0x0);
+        if (dbg) std::cerr << "[dbg] playerManager=0x" << std::hex << playerManager << std::dec << std::endl;
         
         
         static uint64_t lastPlayerManager = 0;
@@ -79,8 +88,10 @@ int main(){
         if(playerManager){
             uint64_t playersList = mem.read<uint64_t>(playerManager + offsets::entityList);
             uint64_t localPlayer = mem.read<uint64_t>(playerManager + offsets::localPlayer_);
+            if (dbg) std::cerr << "[dbg] playersList=0x" << std::hex << playersList << " localPlayer=0x" << localPlayer << std::dec << std::endl;
             
             if (playersList && localPlayer){
+                if (dbg) std::cerr << "[dbg] entering player processing" << std::endl;
                 
                 functions.viewMatrix = mem.read<Matrix>(mem.read<uint64_t>(mem.read<uint64_t>(mem.read<uint64_t>(localPlayer + offsets::viewMatrix_ptr1) + offsets::viewMatrix_ptr2) + offsets::viewMatrix_ptr3) + offsets::viewMatrix_ptr4);
                 
@@ -190,6 +201,7 @@ int main(){
                 
                 
                 HostIndicator();
+                if (dbg) std::cerr << "[dbg] after HostIndicator" << std::endl;
                 
                 
                 if (hitMarkerSettings.enabled) {
@@ -208,12 +220,15 @@ int main(){
                 
                 
                 aimbot.Render();
+                if (dbg) std::cerr << "[dbg] after aimbot.Render" << std::endl;
                 
                 
                 silent.Render();
+                if (dbg) std::cerr << "[dbg] after silent.Render" << std::endl;
                 
                 
                 recoilControl.Render();
+                if (dbg) std::cerr << "[dbg] after recoilControl.Render" << std::endl;
                 
                 
                 InfinityAmmo();
@@ -221,6 +236,7 @@ int main(){
                 Wallshot();
                 FireRateHack();
                 NoRecoil();
+                if (dbg) std::cerr << "[dbg] after weapon mods" << std::endl;
                 
 
                 
@@ -229,10 +245,13 @@ int main(){
         
         
         hitLogger.Render();
+        if (dbg) std::cerr << "[dbg] after hitLogger.Render" << std::endl;
         
         if (ImGui::GetCurrentContext()) {
             draw::endFrame();
         }
+        if (dbg) std::cerr << "[dbg] after endFrame" << std::endl;
+        dbgFrame++;
 
         if (menu.should_exit)
             break;
