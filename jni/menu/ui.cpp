@@ -8,9 +8,13 @@
 #include "../includes/keybinds.h"
 
 void g_menu::render(){
+    static int dbgMenuFrame = 0;
+    const bool dbg = (dbgMenuFrame < 10);
+    if (dbg) std::cerr << "[dbg-menu] enter render" << std::endl;
     
     static bool bindsInitialized = false;
     if (!bindsInitialized) {
+        if (dbg) std::cerr << "[dbg-menu] init binds start" << std::endl;
         bindsInitialized = true;
         
         keyBindManager.AddBind("esp", "ESP");
@@ -45,10 +49,12 @@ void g_menu::render(){
         keyBindManager.AddBind("knifebot", "Knife Bot");
         keyBindManager.AddBind("triggerbot", "Trigger Bot");
         keyBindManager.AddBind("nospread", "No Spread");
+        if (dbg) std::cerr << "[dbg-menu] init binds done" << std::endl;
     }
     
     
     keyBindManager.ProcessBinding();
+    if (dbg) std::cerr << "[dbg-menu] after ProcessBinding" << std::endl;
     
     
     if (!functions.show_menu && menu.keybinds_enabled) {
@@ -152,19 +158,24 @@ void g_menu::render(){
     if (ImGui::IsKeyPressed(ImGuiKey_Insert, false)) {
         functions.show_menu = !functions.show_menu;
     }
+    if (dbg) std::cerr << "[dbg-menu] after insert check" << std::endl;
 
     if (functions.show_menu)
     {
+        if (dbg) std::cerr << "[dbg-menu] show_menu true" << std::endl;
         ImGui::SetNextWindowSize(ImVec2(600, 500), ImGuiCond_FirstUseEver);
         ImGui::SetNextWindowPos(ImVec2(50, 50), ImGuiCond_FirstUseEver);
         
         ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoCollapse;
         
+        if (dbg) std::cerr << "[dbg-menu] before Begin" << std::endl;
         if (ImGui::Begin("zov", nullptr, window_flags))
         {
+            if (dbg) std::cerr << "[dbg-menu] after Begin true" << std::endl;
             
             if (ImGui::BeginTabBar("MainTabs", ImGuiTabBarFlags_None))
             {
+                if (dbg) std::cerr << "[dbg-menu] after BeginTabBar true" << std::endl;
                 if (ImGui::BeginTabItem("esp"))
                 {
                     menu.current_tab = 0;
@@ -460,5 +471,8 @@ void g_menu::render(){
             }
         }
         ImGui::End();
+        if (dbg) std::cerr << "[dbg-menu] after End" << std::endl;
     }
+    if (dbg) std::cerr << "[dbg-menu] leave render" << std::endl;
+    dbgMenuFrame++;
 }
