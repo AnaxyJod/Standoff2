@@ -26,6 +26,9 @@ namespace draw {
             return true;
 
         auto info = android::ANativeWindowCreator::GetDisplayInfo();
+        if (info.width <= 0 || info.height <= 0) {
+            return false;
+        }
         g_displayInfo.orientation = info.orientation;
         g_displayInfo.width = info.width;
         g_displayInfo.height = info.height;
@@ -35,7 +38,10 @@ namespace draw {
             return false;
 
         display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-        eglInitialize(display, 0, 0);
+        if (display == EGL_NO_DISPLAY)
+            return false;
+        if (!eglInitialize(display, 0, 0))
+            return false;
         EGLint num_config;
         const EGLint attribs[] = {
             EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
@@ -48,16 +54,25 @@ namespace draw {
             EGL_NONE
         };
 
-        eglChooseConfig(display, attribs, &config, 1, &num_config);
+        if (!eglChooseConfig(display, attribs, &config, 1, &num_config) || num_config <= 0)
+            return false;
         EGLint format;
-        eglGetConfigAttrib(display, config, EGL_NATIVE_VISUAL_ID, &format);
+        if (!eglGetConfigAttrib(display, config, EGL_NATIVE_VISUAL_ID, &format))
+            return false;
         ANativeWindow_setBuffersGeometry(native_window, 0, 0, format);
         const EGLint ctx_attribs[] = { EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE };
         context = eglCreateContext(display, config, EGL_NO_CONTEXT, ctx_attribs);
+        if (context == EGL_NO_CONTEXT)
+            return false;
         surface = eglCreateWindowSurface(display, config, native_window, nullptr);
-        eglMakeCurrent(display, surface, surface, context);
+        if (surface == EGL_NO_SURFACE)
+            return false;
+        if (!eglMakeCurrent(display, surface, surface, context))
+            return false;
 
         ImGui::CreateContext();
+        if (!ImGui::GetCurrentContext())
+            return false;
         ImGuiIO &io = ImGui::GetIO();
     io.IniFilename = NULL;
     static ImFontConfig font_cfg;
@@ -108,12 +123,16 @@ namespace draw {
     void processInput() {}
 
     void beginFrame() {
+        if (!g_Initialized || !ImGui::GetCurrentContext() || display == EGL_NO_DISPLAY || surface == EGL_NO_SURFACE)
+            return;
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplAndroid_NewFrame(g_displayInfo.width, g_displayInfo.height);
         ImGui::NewFrame();
     }
 
     void endFrame() {
+        if (!g_Initialized || !ImGui::GetCurrentContext() || display == EGL_NO_DISPLAY || surface == EGL_NO_SURFACE)
+            return;
         ImGui::Render();
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT);

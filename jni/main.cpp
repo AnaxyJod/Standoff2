@@ -54,7 +54,15 @@ int main(){
     
     while(true){
         draw::processInput();
+        if (!ImGui::GetCurrentContext()) {
+            usleep(20000);
+            continue;
+        }
         draw::beginFrame();
+        if (!ImGui::GetCurrentContext()) {
+            usleep(20000);
+            continue;
+        }
 
         menu.render();
         
@@ -222,7 +230,9 @@ int main(){
         
         hitLogger.Render();
         
-        draw::endFrame();
+        if (ImGui::GetCurrentContext()) {
+            draw::endFrame();
+        }
 
         if (menu.should_exit)
             break;

@@ -394,18 +394,19 @@ struct TMatrix {
 
 namespace DisplayCache {
     inline auto& GetDisplayInfo() {
-        static auto displayInfo = android::ANativeWindowCreator::GetDisplayInfo();
+        static draw::DisplayInfo displayInfo = draw::getDisplayInfo();
+        if (displayInfo.width <= 0 || displayInfo.height <= 0) {
+            displayInfo = draw::getDisplayInfo();
+        }
         return displayInfo;
     }
     
     inline float GetScreenWidth() {
-        static float width = static_cast<float>(GetDisplayInfo().width);
-        return width;
+        return static_cast<float>(GetDisplayInfo().width);
     }
     
     inline float GetScreenHeight() {
-        static float height = static_cast<float>(GetDisplayInfo().height);
-        return height;
+        return static_cast<float>(GetDisplayInfo().height);
     }
 }
 
