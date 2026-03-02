@@ -1,0 +1,41 @@
+name: Build q.sh
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Android NDK
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r29
+
+      - name: Build arm64-v8a executable
+        run: |
+          "$ANDROID_NDK_ROOT/ndk-build" \
+            NDK_PROJECT_PATH="$GITHUB_WORKSPACE" \
+            APP_BUILD_SCRIPT="$GITHUB_WORKSPACE/jni/Android.mk" \
+            NDK_APPLICATION_MK="$GITHUB_WORKSPACE/jni/Application.mk"
+
+      - name: Verify output
+        run: |
+          test -f "$GITHUB_WORKSPACE/libs/arm64-v8a/q.sh"
+          ls -lh "$GITHUB_WORKSPACE/libs/arm64-v8a/q.sh"
+
+      - name: Upload q.sh artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: q.sh-arm64-v8a
+          path: libs/arm64-v8a/q.sh
+          if-no-files-found: error
+          retention-days: 30
