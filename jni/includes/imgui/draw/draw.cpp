@@ -135,7 +135,8 @@ namespace draw {
         if (!g_Initialized || !g_BackendAndroidReady || !g_BackendGlReady || !ImGui::GetCurrentContext() || display == EGL_NO_DISPLAY || surface == EGL_NO_SURFACE)
             return;
         ImGuiIO &io = ImGui::GetIO();
-        if (!io.BackendPlatformUserData || !io.BackendRendererUserData)
+        // This Android backend doesn't always populate BackendPlatformUserData.
+        if (!io.BackendRendererUserData)
             return;
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplAndroid_NewFrame(g_displayInfo.width, g_displayInfo.height);

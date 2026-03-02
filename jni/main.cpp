@@ -54,18 +54,21 @@ int main(){
     
     while(true){
         static int dbgFrame = 0;
-        const bool dbg = (dbgFrame < 10);
-        if (dbg) std::cerr << "[dbg] frame " << dbgFrame << " start" << std::endl;
+        const int frameNo = dbgFrame++;
+        const bool dbg = (frameNo < 10);
+        if (dbg) std::cerr << "[dbg] frame " << frameNo << " start" << std::endl;
 
         draw::processInput();
         if (dbg) std::cerr << "[dbg] after processInput" << std::endl;
         if (!ImGui::GetCurrentContext()) {
+            if (dbg) std::cerr << "[dbg] skip: no ImGui context" << std::endl;
             usleep(20000);
             continue;
         }
         draw::beginFrame();
         if (dbg) std::cerr << "[dbg] after beginFrame" << std::endl;
         if (!ImGui::GetCurrentContext() || !draw::isFrameReady()) {
+            if (dbg) std::cerr << "[dbg] skip: frame not ready" << std::endl;
             usleep(20000);
             continue;
         }
@@ -251,7 +254,6 @@ int main(){
             draw::endFrame();
         }
         if (dbg) std::cerr << "[dbg] after endFrame" << std::endl;
-        dbgFrame++;
 
         if (menu.should_exit)
             break;
