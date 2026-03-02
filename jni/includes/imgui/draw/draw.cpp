@@ -17,6 +17,7 @@ namespace draw {
     static bool g_Initialized = false;
     static bool g_BackendAndroidReady = false;
     static bool g_BackendGlReady = false;
+    static bool g_FrameReady = false;
     static DisplayInfo g_displayInfo = {};
 
     DisplayInfo getDisplayInfo() {
@@ -130,6 +131,7 @@ namespace draw {
     void processInput() {}
 
     void beginFrame() {
+        g_FrameReady = false;
         if (!g_Initialized || !g_BackendAndroidReady || !g_BackendGlReady || !ImGui::GetCurrentContext() || display == EGL_NO_DISPLAY || surface == EGL_NO_SURFACE)
             return;
         ImGuiIO &io = ImGui::GetIO();
@@ -138,16 +140,22 @@ namespace draw {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplAndroid_NewFrame(g_displayInfo.width, g_displayInfo.height);
         ImGui::NewFrame();
+        g_FrameReady = true;
+    }
+
+    bool isFrameReady() {
+        return g_FrameReady;
     }
 
     void endFrame() {
-        if (!g_Initialized || !g_BackendAndroidReady || !g_BackendGlReady || !ImGui::GetCurrentContext() || display == EGL_NO_DISPLAY || surface == EGL_NO_SURFACE)
+        if (!g_FrameReady || !g_Initialized || !g_BackendAndroidReady || !g_BackendGlReady || !ImGui::GetCurrentContext() || display == EGL_NO_DISPLAY || surface == EGL_NO_SURFACE)
             return;
         ImGui::Render();
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         eglSwapBuffers(display, surface);
+        g_FrameReady = false;
     }
 
     void shutdown() {
@@ -169,6 +177,7 @@ namespace draw {
         display = EGL_NO_DISPLAY;
         context = EGL_NO_CONTEXT;
         surface = EGL_NO_SURFACE;
+        g_FrameReady = false;
         if (native_window) {
             android::ANativeWindowCreator::Destroy(native_window);
             native_window = nullptr;

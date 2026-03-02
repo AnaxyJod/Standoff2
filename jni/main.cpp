@@ -65,7 +65,7 @@ int main(){
         }
         draw::beginFrame();
         if (dbg) std::cerr << "[dbg] after beginFrame" << std::endl;
-        if (!ImGui::GetCurrentContext()) {
+        if (!ImGui::GetCurrentContext() || !draw::isFrameReady()) {
             usleep(20000);
             continue;
         }

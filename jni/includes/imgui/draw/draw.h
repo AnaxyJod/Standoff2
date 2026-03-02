@@ -18,6 +18,7 @@ namespace draw {
     bool initialize(bool log = false);
     void processInput();
     void beginFrame();
+    bool isFrameReady();
     void endFrame();
     void shutdown();
     DisplayInfo getDisplayInfo();
