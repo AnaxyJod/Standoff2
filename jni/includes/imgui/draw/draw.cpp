@@ -15,6 +15,8 @@ namespace draw {
     static EGLContext context = EGL_NO_CONTEXT;
     static ANativeWindow *native_window = nullptr;
     static bool g_Initialized = false;
+    static bool g_BackendAndroidReady = false;
+    static bool g_BackendGlReady = false;
     static DisplayInfo g_displayInfo = {};
 
     DisplayInfo getDisplayInfo() {
@@ -113,8 +115,13 @@ namespace draw {
     io.Fonts->AddFontDefault(&font_cfg);
 
         ImGui::StyleColorsDark();
-        ImGui_ImplAndroid_Init(native_window);
-        ImGui_ImplOpenGL3_Init("#version 300 es");
+
+        g_BackendAndroidReady = ImGui_ImplAndroid_Init(native_window);
+        g_BackendGlReady = ImGui_ImplOpenGL3_Init("#version 300 es");
+        if (!g_BackendAndroidReady || !g_BackendGlReady) {
+            return false;
+        }
+
         touch::init(info.width, info.height, info.orientation);
         g_Initialized = true;
         return true;
@@ -123,7 +130,10 @@ namespace draw {
     void processInput() {}
 
     void beginFrame() {
-        if (!g_Initialized || !ImGui::GetCurrentContext() || display == EGL_NO_DISPLAY || surface == EGL_NO_SURFACE)
+        if (!g_Initialized || !g_BackendAndroidReady || !g_BackendGlReady || !ImGui::GetCurrentContext() || display == EGL_NO_DISPLAY || surface == EGL_NO_SURFACE)
+            return;
+        ImGuiIO &io = ImGui::GetIO();
+        if (!io.BackendPlatformUserData || !io.BackendRendererUserData)
             return;
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplAndroid_NewFrame(g_displayInfo.width, g_displayInfo.height);
@@ -131,7 +141,7 @@ namespace draw {
     }
 
     void endFrame() {
-        if (!g_Initialized || !ImGui::GetCurrentContext() || display == EGL_NO_DISPLAY || surface == EGL_NO_SURFACE)
+        if (!g_Initialized || !g_BackendAndroidReady || !g_BackendGlReady || !ImGui::GetCurrentContext() || display == EGL_NO_DISPLAY || surface == EGL_NO_SURFACE)
             return;
         ImGui::Render();
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -145,6 +155,8 @@ namespace draw {
             return;
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplAndroid_Shutdown();
+        g_BackendAndroidReady = false;
+        g_BackendGlReady = false;
         ImGui::DestroyContext();
         if (display != EGL_NO_DISPLAY) {
             eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
